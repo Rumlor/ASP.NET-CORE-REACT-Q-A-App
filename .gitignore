@@ -1,0 +1,7 @@
+#.NET
+*.vs
+bin/
+obj/
+
+#JS/REACT
+node_modules/
