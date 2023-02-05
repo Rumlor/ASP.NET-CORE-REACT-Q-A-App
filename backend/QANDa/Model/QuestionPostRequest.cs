@@ -10,8 +10,5 @@ namespace QANDa.Model
         public string Title { get; set; }
         [Required(ErrorMessage ="Please ensure you entered content.")]
         public string Content { get; set; }
-        public string UserId { get; set; }
-        public string UserName { get; set; }
-        public DateTime Created { get; set; }
     }
 }

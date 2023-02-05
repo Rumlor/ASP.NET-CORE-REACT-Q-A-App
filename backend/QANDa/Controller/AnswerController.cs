@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QANDa.Data;
 using QANDa.Model;
+using QANDa.Service;
 using System.Collections.Generic;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -11,17 +12,15 @@ namespace QANDa.Controller
     [ApiController]
     public class AnswerController : ControllerBase
     {
-        private readonly IDataRepositoryRead _dataRepositoryRead;
-        private readonly IDataRepositoryWrite _dataRepositoryWrite;
+        private readonly IService _service;
         
-        public AnswerController(IDataRepositoryRead read, IDataRepositoryWrite write) {
-            _dataRepositoryRead =  read;
-            _dataRepositoryWrite = write;
+        public AnswerController(IService service) {
+            _service = service;
         }
 
         [HttpGet("{answerId}")]
         public  ActionResult<AnswerGetResponse> GetAnswer(int answerId) {
-            var answer = _dataRepositoryRead.GetAnswer(answerId);
+            var answer = _service.GetAnswer(answerId);
             if (answer == null) return NotFound();
             else return new JsonResult(answer);
         }
@@ -29,7 +28,7 @@ namespace QANDa.Controller
         [HttpPost]
         public ActionResult<AnswerGetResponse> PostAnswer(AnswerPostRequest answerPost)
         {
-           var result = _dataRepositoryWrite.PostAnswer(answerPost);
+           var result = _service.PostAnswer(answerPost);
             if(result == null) return NotFound();
             return result;
 

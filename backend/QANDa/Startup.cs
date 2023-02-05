@@ -5,6 +5,7 @@ using DbUp;
 using System.Reflection;
 using DbUp.Engine;
 using QANDa.Data;
+using QANDa.Service;
 
 namespace QANDa
 {
@@ -34,6 +35,7 @@ namespace QANDa
             services.AddControllers();
             services.AddSingleton<IDataRepositoryRead, DataRepository>();
             services.AddSingleton<IDataRepositoryWrite,DataRepository>();
+            services.AddSingleton<IService,QuestionAnswerService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

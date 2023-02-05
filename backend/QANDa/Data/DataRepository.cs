@@ -42,11 +42,11 @@ namespace QANDa.Data
         }
         public  bool QuestionExists(int? questionId)
         {
-            if(questionId== 0 && questionId==null) return false;
+            if(!questionId.HasValue || (questionId.HasValue && questionId.Value == 0)) return false;
             return ExecuteQueryWithDefault<bool>("EXEC [QandA].[Question_Exists] @QuestionId=@QuestionId", new { QuestionId = questionId });
         }
 
-        public  AnswerGetResponse PostAnswer(AnswerPostRequest answer)
+        public  AnswerGetResponse PostAnswer(AnswerPostRequestFull answer)
         {
            var questionExists = QuestionExists(answer.QuestionId.Value);
             if (!questionExists) return null;
@@ -58,7 +58,7 @@ namespace QANDa.Data
                                                       ,@Created=@Created", answer);
         }
 
-        public  QuestionGetSingleResponse PostQuestion(QuestionPostRequest question)
+        public  QuestionGetSingleResponse PostQuestion(QuestionPostFullRequest question)
         {
             QuestionGetSingleResponse postedQuestion = ExecuteQueryFirst<QuestionGetSingleResponse>(@"
                                                            EXEC [QandA].[Question_Post]

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using QANDa.Data;
 using QANDa.Model;
+using QANDa.Service;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -12,13 +13,10 @@ namespace QANDa.Controller
     [ApiController]
     public class QuestionController : ControllerBase
     {
-        private readonly IDataRepositoryRead _dataRepositoryRead;
-        private readonly IDataRepositoryWrite _dataRepositoryWrite;
-
-        public QuestionController(IDataRepositoryRead dataRepositoryRead, IDataRepositoryWrite dataRepositoryWrite)
+        private readonly IService _service;
+        public QuestionController(IService service)
         {
-            _dataRepositoryRead = dataRepositoryRead;
-            _dataRepositoryWrite = dataRepositoryWrite;
+            _service = service;
         }
 
         [HttpGet]
@@ -26,24 +24,24 @@ namespace QANDa.Controller
         {
             if (string.IsNullOrEmpty(search))
             {
-                return _dataRepositoryRead.GetQuestions();
+                return _service.GetQuestions();
             }
             else
             {
-                return _dataRepositoryRead.GetQuestionsBySearch(search);
+                return _service.GetQuestionsBySearch(search);
             }            
         }
 
         [HttpGet("unanswered")]
         public IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
         {
-            return _dataRepositoryRead.GetUnAnsweredQuestions();
+            return _service.GetUnAnsweredQuestions();
         }
 
         [HttpGet("{questionId}")]
         public ActionResult<QuestionGetSingleResponse> GetSingleQuestion(int questionId)
         {
-            QuestionGetSingleResponse response = _dataRepositoryRead.GetQuestion(questionId);
+            QuestionGetSingleResponse response = _service.GetQuestion(questionId);
             if(response == null)
             {
                 return NotFound();
@@ -54,14 +52,14 @@ namespace QANDa.Controller
         [HttpPost]
         public ActionResult<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest reqeuest)
         {
-            var posted = _dataRepositoryWrite.PostQuestion(reqeuest);
+            var posted = _service.PostQuestion(reqeuest);
             return CreatedAtAction(nameof(PostQuestion), posted);
         }
         
         [HttpPut("{questionId}")]
         public ActionResult<QuestionGetSingleResponse> PutQuestion(int questionId,QuestionPutRequest reqeuest)
         {
-           var repsonse = _dataRepositoryWrite.PutQuestion(questionId,reqeuest);
+           var repsonse = _service.PutQuestion(questionId,reqeuest);
             if (repsonse == null)
             {
                 return NotFound();
@@ -72,7 +70,7 @@ namespace QANDa.Controller
         [HttpDelete("{questionId}")]
         public ActionResult DeleteQuestion(int questionId)
         {
-           var result = _dataRepositoryWrite.DeleteQuestion(questionId);
+           var result = _service.DeleteQuestion(questionId);
             if(result)
                 return NoContent();
             else
