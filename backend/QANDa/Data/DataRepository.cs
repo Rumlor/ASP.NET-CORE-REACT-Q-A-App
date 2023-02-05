@@ -1,10 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Data.SqlClient;
-using Dapper;
 using QANDa.Model;
 using System.Collections.Generic;
-using System.Linq;
-using System;
 
 namespace QANDa.Data
 {
