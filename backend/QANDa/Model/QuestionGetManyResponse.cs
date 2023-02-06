@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace QANDa.Model
 {
@@ -9,6 +10,7 @@ namespace QANDa.Model
         public string Content { get; set; }
         public string UserName { get; set; }
         public DateTime Created { get; set; }
+        public IEnumerable<AnswerGetResponse> Answers { get; set; } = new List<AnswerGetResponse>();
 
     }
 }

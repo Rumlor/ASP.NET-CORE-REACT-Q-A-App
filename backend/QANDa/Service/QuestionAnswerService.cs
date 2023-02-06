@@ -31,12 +31,14 @@ namespace QANDa.Service
             return _dataRepositoryRead.QuestionExists(questionId);
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetQuestions()
-        {
+        public IEnumerable<QuestionGetManyResponse> GetQuestions(bool includeAnswers)
+        {   if (includeAnswers)
+                return _dataRepositoryRead.GetQuestionsWithAnswers();
+
             return _dataRepositoryRead.GetQuestions();
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search)
+        public IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers)
         {
             return _dataRepositoryRead.GetQuestionsBySearch(search);
         }

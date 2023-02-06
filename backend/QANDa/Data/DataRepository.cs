@@ -93,5 +93,18 @@ namespace QANDa.Data
             Execute(@"EXEC [QandA].[Question_Delete] @QuestionId=@QuestionId", new { QuestionId = questionId });
             return true;
         }
+
+        public IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers()
+        {
+            var questionsWithoutAnswers = GetQuestions();
+            
+            foreach(var question in questionsWithoutAnswers)
+            {
+                question.Answers =
+                    ExecuteQueryForEnumerable<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId",
+                    new { question.QuestionId });
+            }
+            return questionsWithoutAnswers;
+        }
     }
 }

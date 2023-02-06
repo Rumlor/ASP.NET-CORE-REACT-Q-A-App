@@ -6,6 +6,7 @@ namespace QANDa.Data
     public interface IDataRepositoryRead
     {
         IEnumerable<QuestionGetManyResponse> GetQuestions();
+        IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers();
         IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions();
         IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search);
         QuestionGetSingleResponse GetQuestion(int questionId);
