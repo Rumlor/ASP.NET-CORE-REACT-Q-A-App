@@ -10,22 +10,22 @@ namespace QANDa.Data
     {
         private readonly string _connectionString;
 
-        public DataRepositoryBase(IConfiguration configuration)
+        protected DataRepositoryBase(IConfiguration configuration)
         {
             this._connectionString = configuration["ConnectionStrings:DefaultConnection"];
         }
 
-        public SqlConnection StartConnection()
+        private SqlConnection StartConnection()
         {
             return new SqlConnection(this._connectionString);
         }
 
-        public void CloseConnection(SqlConnection connection)
+        private static void CloseConnection(SqlConnection connection)
         {
             connection.Close();
         }
 
-        public IEnumerable<T> ExecuteQueryForEnumerable<T>(string query,object queryParam)
+        protected virtual IEnumerable<T> ExecuteQueryForEnumerable<T>(string query,object queryParam)
         {
             var connection = StartConnection();
             IEnumerable<T> result;
@@ -38,7 +38,7 @@ namespace QANDa.Data
             CloseConnection(connection);
             return result;
         }
-        public T ExecuteQueryWithDefault<T>(string query, object queryParam)
+        protected virtual T ExecuteQueryWithDefault<T>(string query, object queryParam)
         {
             var connection = StartConnection();
             T result;
@@ -51,7 +51,7 @@ namespace QANDa.Data
             CloseConnection(connection);
             return result;
         }
-        public T ExecuteQueryFirst<T>(string query, object queryParam)
+        protected virtual T ExecuteQueryFirst<T>(string query, object queryParam)
         {
             var connection = StartConnection();
             var response = connection.QueryFirst<T>(query, queryParam);
@@ -59,7 +59,7 @@ namespace QANDa.Data
             return response;
         }
 
-        public void Execute(string query,object queryParam)
+        protected virtual void Execute(string query,object queryParam)
         {
             var connection = StartConnection();
             connection.Execute(query, queryParam);
