@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using QANDa.Model;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QANDa.Data
 {
@@ -21,7 +22,7 @@ namespace QANDa.Data
         {
             QuestionGetSingleResponse questionResponse = ExecuteQueryWithDefault<QuestionGetSingleResponse>("EXEC [QandA].[Question_GetSingle] @QuestionId=@QuestionId", new { QuestionId = questionId });
             if(questionResponse != null) {
-                questionResponse.Answers = ExecuteQueryForEnumerable<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", new { QuestionId = questionId });
+                questionResponse.Answers = ExecuteQueryForEnumerable<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", new { QuestionId = questionId }).ToList();
             }
             return questionResponse;
         }
@@ -98,11 +99,9 @@ namespace QANDa.Data
         }
 
         public IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers()
-        {    
-            var questionsWithoutAnswers = GetQuestions();
-            ExecuteQueryWithRelationship<QuestionGetManyResponse, AnswerGetResponse>
-                (query:"EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId",list:questionsWithoutAnswers, childField:"Answers",idField:"QuestionId");
-            return questionsWithoutAnswers;
+        {
+            return ExecuteMappedQuery<QuestionGetManyResponse,AnswerGetResponse>("EXEC [QandA].[Question_GetMany_WithAnswers]", null, "Answers", "QuestionId","AnswerId");
+            
         }
     }
 }

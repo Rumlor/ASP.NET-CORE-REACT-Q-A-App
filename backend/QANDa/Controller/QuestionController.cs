@@ -23,13 +23,10 @@ namespace QANDa.Controller
         public IEnumerable<QuestionGetManyResponse> GetQuestions([FromQuery] string search,[FromQuery]bool includeAnswers)
         {
             if (string.IsNullOrEmpty(search))
-            {
                 return _service.GetQuestions(includeAnswers);
-            }
-            else
-            {
-                return _service.GetQuestionsBySearch(search,includeAnswers);
-            }            
+            
+            return _service.GetQuestionsBySearch(search,includeAnswers);
+                        
         }
 
         [HttpGet("unanswered")]

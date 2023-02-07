@@ -71,12 +71,26 @@ namespace QANDa.Data
             CloseConnection(connection);
             return response;
         }
-
         protected virtual void Execute(string query,object queryParam)
         {
             var connection = StartConnection();
             connection.Execute(query, queryParam);
             CloseConnection(connection);
+        }
+
+        protected virtual IEnumerable<T> ExecuteMappedQuery<T,U>(string query,object queryParam,string childField, string idField,string childIdField)
+        {
+           using var connection = StartConnection();
+           return  connection.Query<T, U, T>(query, map:(parent, child) =>
+                {
+                    var childs = parent.GetType().GetProperty(childField).GetValue(parent) as List<U>;
+
+                    if(child.GetType().GetProperty(childIdField).GetValue(child) != null)
+                        childs.Add(child);
+                    
+                    parent.GetType().GetProperty(childField).SetValue(parent, childs);
+                    return parent;
+                },splitOn: idField);
         }
     }
 }
