@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using QANDa.Model;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QANDa.Data
 {
@@ -25,6 +26,18 @@ namespace QANDa.Data
             connection.Close();
         }
 
+        protected virtual void ExecuteQueryWithRelationship<T,U>(string query,IEnumerable<T> list,string childField,string idField)
+        {
+            using var con = StartConnection();
+            foreach (var item in list)
+            {
+                var id = item.GetType().GetProperty(idField).GetValue(item, null);
+                var queryParam = new Dictionary<string, object> { { idField, id } };
+                IEnumerable<U> childs = con.Query<U>(query, queryParam);
+                item.GetType().GetProperty(childField).SetValue(item, childs != null ? childs : new List<T> { });
+            }
+
+        }
         protected virtual IEnumerable<T> ExecuteQueryForEnumerable<T>(string query,object queryParam)
         {
             var connection = StartConnection();

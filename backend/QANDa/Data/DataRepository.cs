@@ -97,13 +97,8 @@ namespace QANDa.Data
         public IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers()
         {
             var questionsWithoutAnswers = GetQuestions();
-            
-            foreach(var question in questionsWithoutAnswers)
-            {
-                question.Answers =
-                    ExecuteQueryForEnumerable<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId",
-                    new { question.QuestionId });
-            }
+
+            ExecuteQueryWithRelationship<QuestionGetManyResponse, AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", questionsWithoutAnswers, "Answers",idField:"QuestionId");
             return questionsWithoutAnswers;
         }
     }
