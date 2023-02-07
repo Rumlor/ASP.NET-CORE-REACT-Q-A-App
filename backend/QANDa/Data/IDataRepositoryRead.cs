@@ -8,7 +8,7 @@ namespace QANDa.Data
         IEnumerable<QuestionGetManyResponse> GetQuestions();
         IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers();
         IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions();
-        IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search);
+        IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers);
         QuestionGetSingleResponse GetQuestion(int questionId);
         bool QuestionExists(int? questionId);
         AnswerGetResponse GetAnswer(int? answerId);

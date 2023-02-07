@@ -40,7 +40,7 @@ namespace QANDa.Service
 
         public IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers)
         {
-            return _dataRepositoryRead.GetQuestionsBySearch(search);
+            return _dataRepositoryRead.GetQuestionsBySearch(search,includeAnswers);
         }
 
         public IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()

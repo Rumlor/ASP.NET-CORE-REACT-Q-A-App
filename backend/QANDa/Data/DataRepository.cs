@@ -31,9 +31,12 @@ namespace QANDa.Data
             return ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC QandA.Question_GetMany",null);
         }
 
-        public  IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search)
+        public  IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers)
         {
-            return ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC [QandA].[Question_GetMany_BySearch] @Search=@Search", new {Search=search});
+            var questionsBySearch = ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC [QandA].[Question_GetMany_BySearch] @Search=@Search", new {Search=search});
+            if(includeAnswers)
+                ExecuteQueryWithRelationship<QuestionGetManyResponse, AnswerGetResponse>(query: "EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", questionsBySearch, "Answers", "QuestionId");
+            return questionsBySearch;
         }
 
         public  IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
@@ -95,10 +98,10 @@ namespace QANDa.Data
         }
 
         public IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers()
-        {
+        {    
             var questionsWithoutAnswers = GetQuestions();
-
-            ExecuteQueryWithRelationship<QuestionGetManyResponse, AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", questionsWithoutAnswers, "Answers",idField:"QuestionId");
+            ExecuteQueryWithRelationship<QuestionGetManyResponse, AnswerGetResponse>
+                (query:"EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId",list:questionsWithoutAnswers, childField:"Answers",idField:"QuestionId");
             return questionsWithoutAnswers;
         }
     }

@@ -29,12 +29,12 @@ namespace QANDa.Data
         protected virtual void ExecuteQueryWithRelationship<T,U>(string query,IEnumerable<T> list,string childField,string idField)
         {
             using var con = StartConnection();
-            foreach (var item in list)
+            foreach (T item in list)
             {
                 var id = item.GetType().GetProperty(idField).GetValue(item, null);
                 var queryParam = new Dictionary<string, object> { { idField, id } };
                 IEnumerable<U> childs = con.Query<U>(query, queryParam);
-                item.GetType().GetProperty(childField).SetValue(item, childs != null ? childs : new List<T> { });
+                item.GetType().GetProperty(childField).SetValue(item, childs);
             }
 
         }
