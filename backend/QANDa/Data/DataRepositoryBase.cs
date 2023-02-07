@@ -82,21 +82,21 @@ namespace QANDa.Data
             var parentDictionary = new Dictionary<int, T>();
            return  connection.Query<T, U, T>(query, map:(parent, child) =>
                 {
-                    T parentValue;
                     var parentId = ((int)parent.GetType().GetProperty(idField).GetValue(parent, null));
-                    if (!parentDictionary.TryGetValue(parentId, out parentValue))
+                    //out T parentValue inlined parameter syntax !!
+                    if (!parentDictionary.TryGetValue(parentId, out T parentValue))
                     {
                         parentValue = parent;
                         parentDictionary.Add(parentId, parentValue);
                     }
                     var childs = parentValue.GetType().GetProperty(childField).GetValue(parentValue, null) as List<U>;
                     
-                    if(child.GetType().GetProperty(childIdField).GetValue(child,null) != null)
+                    if(child!= null && child.GetType().GetProperty(childIdField).GetValue(child,null) != null)
                         childs.Add(child);
                     
-                    parentValue.GetType().GetProperty(childField).SetValue(parent, childs);
+                    parentValue.GetType().GetProperty(childField).SetValue(parentValue, childs);
                     return parentValue;
-                },splitOn: idField).Distinct();
+                },splitOn: childIdField).Distinct();
         }
     }
 }
