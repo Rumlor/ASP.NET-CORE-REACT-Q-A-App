@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using QANDa.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,12 +21,10 @@ namespace QANDa.Data
         {
             return new SqlConnection(this._connectionString);
         }
-
         private static void CloseConnection(SqlConnection connection)
         {
             connection.Close();
         }
-
         protected virtual void ExecuteQueryWithRelationship<T,U>(string query,IEnumerable<T> list,string childField,string idField)
         {
             using var con = StartConnection();
@@ -77,20 +76,27 @@ namespace QANDa.Data
             connection.Execute(query, queryParam);
             CloseConnection(connection);
         }
-
         protected virtual IEnumerable<T> ExecuteMappedQuery<T,U>(string query,object queryParam,string childField, string idField,string childIdField)
         {
-           using var connection = StartConnection();
+            using var connection = StartConnection();
+            var parentDictionary = new Dictionary<int, T>();
            return  connection.Query<T, U, T>(query, map:(parent, child) =>
                 {
-                    var childs = parent.GetType().GetProperty(childField).GetValue(parent) as List<U>;
-
-                    if(child.GetType().GetProperty(childIdField).GetValue(child) != null)
+                    T parentValue;
+                    var parentId = ((int)parent.GetType().GetProperty(idField).GetValue(parent, null));
+                    if (!parentDictionary.TryGetValue(parentId, out parentValue))
+                    {
+                        parentValue = parent;
+                        parentDictionary.Add(parentId, parentValue);
+                    }
+                    var childs = parentValue.GetType().GetProperty(childField).GetValue(parentValue, null) as List<U>;
+                    
+                    if(child.GetType().GetProperty(childIdField).GetValue(child,null) != null)
                         childs.Add(child);
                     
-                    parent.GetType().GetProperty(childField).SetValue(parent, childs);
-                    return parent;
-                },splitOn: idField);
+                    parentValue.GetType().GetProperty(childField).SetValue(parent, childs);
+                    return parentValue;
+                },splitOn: idField).Distinct();
         }
     }
 }
