@@ -2,6 +2,7 @@
 using QANDa.Data;
 using QANDa.Model;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace QANDa.Service
 {
@@ -31,21 +32,22 @@ namespace QANDa.Service
             return _dataRepositoryRead.QuestionExists(questionId);
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetQuestions(bool includeAnswers)
-        {   if (includeAnswers)
-                return _dataRepositoryRead.GetQuestionsWithAnswers();
+        public IEnumerable<QuestionGetManyResponse> GetQuestions(bool includeAnswers, int page, int pageSize)
+        {   //to be implemented
+            if (includeAnswers)
+                return _dataRepositoryRead.GetQuestionsPaging(null,page, pageSize);
 
             return _dataRepositoryRead.GetQuestions();
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers)
+        public IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers,int pageSize,int page)
         {
-            return _dataRepositoryRead.GetQuestionsBySearch(search,includeAnswers);
+            return _dataRepositoryRead.GetQuestionsPaging(search,page,pageSize);
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
+        public  async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestionsAsnyc()
         {
-          return _dataRepositoryRead.GetUnAnsweredQuestions();
+          return await _dataRepositoryRead.GetUnAnsweredQuestionsAsync();
         }
 
         public QuestionGetSingleResponse PostQuestion(QuestionPostRequest postRequest)
@@ -81,6 +83,11 @@ namespace QANDa.Service
                                             UserId="id",
                                             UserName="demo" 
                 });
+        }
+
+        public IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
+        {
+            return _dataRepositoryRead.GetUnAnsweredQuestions();
         }
     }
 }

@@ -5,6 +5,7 @@ using QANDa.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace QANDa.Data
 {
@@ -50,6 +51,19 @@ namespace QANDa.Data
             CloseConnection(connection);
             return result;
         }
+        protected virtual T ExecuteQueryForMultiple<T,U>(string query,string childField,object param)
+        {
+            var con = StartConnection();
+            using var results = con.QueryMultiple(query, param);
+            var question = results.Read<T>().FirstOrDefault();
+            if(question != null)
+            {
+                var childs = results.Read<U>().ToList();
+                question.GetType().GetProperty(childField).SetValue(question,childs);
+            }
+            CloseConnection(con);
+            return question;
+        }
         protected virtual T ExecuteQueryWithDefault<T>(string query, object queryParam)
         {
             var connection = StartConnection();
@@ -76,11 +90,17 @@ namespace QANDa.Data
             connection.Execute(query, queryParam);
             CloseConnection(connection);
         }
+        protected async Task<IEnumerable<T>> ExecuteQueryFromEnumerableAsync<T>(string query,object queryParam)
+        {
+            var connection = StartConnection();
+            await connection.OpenAsync();
+            return await (queryParam == null ? connection.QueryAsync<T>(query) : connection.QueryAsync<T>(query, queryParam));
+        }
         protected virtual IEnumerable<T> ExecuteMappedQuery<T,U>(string query,object queryParam,string childField, string idField,string childIdField)
         {
             using var connection = StartConnection();
             var parentDictionary = new Dictionary<int, T>();
-           return  connection.Query<T, U, T>(query, map:(parent, child) =>
+            return  connection.Query<T, U, T>(query, map:(parent, child) =>
                 {
                     var parentId = ((int)parent.GetType().GetProperty(idField).GetValue(parent, null));
                     //out T parentValue inlined parameter syntax !!
@@ -96,7 +116,7 @@ namespace QANDa.Data
                     
                     parentValue.GetType().GetProperty(childField).SetValue(parentValue, childs);
                     return parentValue;
-                },splitOn: childIdField).Distinct();
+                }, queryParam, splitOn:childIdField).Distinct();
         }
     }
 }

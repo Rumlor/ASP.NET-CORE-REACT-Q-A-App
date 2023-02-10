@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using QANDa.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace QANDa.Data
 {
@@ -17,29 +19,20 @@ namespace QANDa.Data
             if(answerId == null) return null;
             return ExecuteQueryWithDefault<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByAnswerId] @AnswerId=@AnswerId", new { AnswerId = answerId });
         }
-
         public  QuestionGetSingleResponse GetQuestion(int questionId)
         {
-            QuestionGetSingleResponse questionResponse = ExecuteQueryWithDefault<QuestionGetSingleResponse>("EXEC [QandA].[Question_GetSingle] @QuestionId=@QuestionId", new { QuestionId = questionId });
-            if(questionResponse != null) {
-                questionResponse.Answers = ExecuteQueryForEnumerable<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", new { QuestionId = questionId }).ToList();
-            }
-            return questionResponse;
+            string questionAndAnswersStoredProcedure = @"EXEC QandA.Question_GetSingle @QuestionId=@QuestionId; 
+                                                         EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId";
+            return ExecuteQueryForMultiple<QuestionGetSingleResponse, AnswerGetResponse>(questionAndAnswersStoredProcedure, "Answers", new {QuestionId=questionId});
         }
-
         public  IEnumerable<QuestionGetManyResponse> GetQuestions()
         {
             return ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC QandA.Question_GetMany",null);
         }
-
         public  IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers)
         {
-            var questionsBySearch = ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC [QandA].[Question_GetMany_BySearch] @Search=@Search", new {Search=search});
-            if(includeAnswers)
-                ExecuteQueryWithRelationship<QuestionGetManyResponse, AnswerGetResponse>(query: "EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId", questionsBySearch, "Answers", "QuestionId");
-            return questionsBySearch;
+            return ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC [QandA].[Question_GetMany_BySearch] @Search=@Search", new { Search = search });
         }
-
         public  IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
         {
          return ExecuteQueryForEnumerable<QuestionGetManyResponse>(" EXEC [QandA].[Question_GetUnanswered]", null);
@@ -49,7 +42,6 @@ namespace QANDa.Data
             if(!questionId.HasValue || (questionId.HasValue && questionId.Value == 0)) return false;
             return ExecuteQueryWithDefault<bool>("EXEC [QandA].[Question_Exists] @QuestionId=@QuestionId", new { QuestionId = questionId });
         }
-
         public  AnswerGetResponse PostAnswer(AnswerPostRequestFull answer)
         {
            var questionExists = QuestionExists(answer.QuestionId.Value);
@@ -61,7 +53,6 @@ namespace QANDa.Data
                                                       ,@UserName=@UserName
                                                       ,@Created=@Created", answer);
         }
-
         public  QuestionGetSingleResponse PostQuestion(QuestionPostFullRequest question)
         {
             QuestionGetSingleResponse postedQuestion = ExecuteQueryFirst<QuestionGetSingleResponse>(@"
@@ -73,7 +64,6 @@ namespace QANDa.Data
 		                                                        @Created =  @Created", question);
             return postedQuestion;
         }
-
         public  QuestionGetSingleResponse PutQuestion(int questionId, QuestionPutRequest question)
         {
            QuestionGetSingleResponse questionFromDB =  GetQuestion(questionId);
@@ -88,7 +78,6 @@ namespace QANDa.Data
                      @Content=@Content", new {QuestionId=questionId, question.Title,question.Content});
             return new QuestionGetSingleResponse{ QuestionId = questionId, Title=question.Title, Content=question.Content };
         }
-
         public  bool DeleteQuestion(int questionId)
         {
             var question = GetQuestion(questionId);
@@ -97,11 +86,30 @@ namespace QANDa.Data
             Execute(@"EXEC [QandA].[Question_Delete] @QuestionId=@QuestionId", new { QuestionId = questionId });
             return true;
         }
-
         public IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers()
         {
             return ExecuteMappedQuery<QuestionGetManyResponse,AnswerGetResponse>("EXEC [QandA].[Question_GetMany_WithAnswers]", null, "Answers", "QuestionId","AnswerId");
             
+        }
+        public async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestionsAsync()
+        {
+           return await  ExecuteQueryFromEnumerableAsync<QuestionGetManyResponse>("EXEC QandA.Question_GetUnanswered", null);
+            
+        }
+        public IEnumerable<QuestionGetManyResponse> GetQuestionsPaging(string search, int pageNumber, int pageSize)
+        {
+            if (search != null)
+            {
+                return ExecuteQueryForEnumerable<QuestionGetManyResponse>(
+                     @"EXEC QandA.Question_GetMany_BySearch_WithPaging
+                  @Search=@Search,@PageNumber=@PageNumber,@PageSize=@PageSize", new { Search = search, PageNumber = pageNumber, PageSize = pageSize });
+            }
+            else
+            {
+                return ExecuteQueryForEnumerable<QuestionGetManyResponse>(
+                    @"EXEC [QandA].[Question_GetMany_WithPaging] 
+                    @PageNumber=@PageNumber,@PageSize=@PageSize", new { PageNumber = pageNumber, PageSize = pageSize });
+            }
         }
     }
 }

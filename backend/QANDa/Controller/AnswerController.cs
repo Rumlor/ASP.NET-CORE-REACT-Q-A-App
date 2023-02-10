@@ -13,9 +13,11 @@ namespace QANDa.Controller
     public class AnswerController : ControllerBase
     {
         private readonly IService _service;
+        private readonly IDataCache _cache;
         
-        public AnswerController(IService service) {
+        public AnswerController(IService service,IDataCache dataCache) {
             _service = service;
+            _cache = dataCache;
         }
 
         [HttpGet("{answerId}")]
@@ -30,6 +32,7 @@ namespace QANDa.Controller
         {
            var result = _service.PostAnswer(answerPost);
             if(result == null) return NotFound();
+            _cache.Remove(answerPost.QuestionId.Value);
             return result;
 
         }

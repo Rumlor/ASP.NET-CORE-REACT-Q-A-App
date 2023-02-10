@@ -36,6 +36,7 @@ namespace QANDa
             services.AddSingleton<IDataRepositoryRead, DataRepository>();
             services.AddSingleton<IDataRepositoryWrite,DataRepository>();
             services.AddSingleton<IService,QuestionAnswerService>();
+            services.AddSingleton<IDataCache, DataCache>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
