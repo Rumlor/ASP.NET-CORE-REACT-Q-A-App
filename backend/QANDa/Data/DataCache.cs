@@ -1,5 +1,7 @@
 ﻿using QANDa.Model;
 using Microsoft.Extensions.Caching.Memory;
+using System;
+
 namespace QANDa.Data
 {
     public class DataCache : IDataCache
@@ -24,7 +26,10 @@ namespace QANDa.Data
 
         QuestionGetSingleResponse IDataCache.Set(QuestionGetSingleResponse question)
         {
-            _memoryCache.Set(GetCacheKey(question.QuestionId),question,new MemoryCacheEntryOptions().SetSize(1));
+            var memoryOption = new MemoryCacheEntryOptions()
+                                    .SetSize(1)
+                                    .SetSlidingExpiration(TimeSpan.FromMinutes(30));
+            _memoryCache.Set(GetCacheKey(question.QuestionId),question,memoryOption);
             return question;
         }
     }
