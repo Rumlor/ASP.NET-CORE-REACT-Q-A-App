@@ -20,10 +20,7 @@ namespace QANDa.Data
         {
             return new SqlConnection(this._connectionString);
         }
-        private static void CloseConnection(SqlConnection connection)
-        {
-            connection.Close();
-        }
+
         protected virtual void ExecuteQueryWithRelationship<T,U>(string query,IEnumerable<T> list,string childField,string idField)
         {
             using var con = StartConnection();
@@ -36,57 +33,61 @@ namespace QANDa.Data
             }
 
         }
-        protected virtual IEnumerable<T> ExecuteQueryForEnumerable<T>(string query,object queryParam)
+        protected virtual async Task<IEnumerable<T>> ExecuteQueryForEnumerable<T>(string query,object queryParam)
         {
             var connection = StartConnection();
+            await connection.OpenAsync();
             IEnumerable<T> result;
             if (queryParam != null)
             {
-                result = connection.Query<T>(query,queryParam);
+                result = await connection.QueryAsync<T>(query,queryParam);
             }
             else
-                result = connection.Query<T>(query);
-            CloseConnection(connection);
+                result = await connection.QueryAsync<T>(query);
+            connection.CloseAsync().Wait();
             return result;
         }
-        protected virtual T ExecuteQueryForMultiple<T,U>(string query,string childField,object param)
+        protected virtual async Task<T> ExecuteQueryForMultipleAsync<T,U>(string query,string childField,object param)
         {
             var con = StartConnection();
-            using var results = con.QueryMultiple(query, param);
+            await con.OpenAsync();
+            using var results = await con.QueryMultipleAsync(query,param);
             var question = results.Read<T>().FirstOrDefault();
             if(question != null)
             {
-                var childs = results.Read<U>().ToList();
+                var childs = (await results.ReadAsync<U>()).ToList();
                 question.GetType().GetProperty(childField).SetValue(question,childs);
             }
-            CloseConnection(con);
             return question;
         }
-        protected virtual T ExecuteQueryWithDefault<T>(string query, object queryParam)
+        protected virtual async  Task<T> ExecuteQueryWithDefault<T>(string query, object queryParam)
         {
             var connection = StartConnection();
+            await connection.OpenAsync();
             T result;
             if (queryParam != null)
             {
-                result = connection.QueryFirstOrDefault<T>(query,queryParam);
+                result = await connection.QueryFirstOrDefaultAsync<T>(query,queryParam);
             }
             else
-                result = connection.QueryFirstOrDefault<T>(query);
-            CloseConnection(connection);
+                result =  await connection.QueryFirstOrDefaultAsync<T>(query);
+            await connection.CloseAsync();
             return result;
         }
-        protected virtual T ExecuteQueryFirst<T>(string query, object queryParam)
+        protected virtual async Task<T> ExecuteQueryFirst<T>(string query, object queryParam)
         {
             var connection = StartConnection();
-            var response = connection.QueryFirst<T>(query, queryParam);
-            CloseConnection(connection);
+            var response = await connection.QueryFirstAsync<T>(query, queryParam);
+            await connection.CloseAsync();
             return response;
         }
-        protected virtual void Execute(string query,object queryParam)
+        protected virtual async Task Execute(string query,object queryParam)
         {
             var connection = StartConnection();
-            connection.Execute(query, queryParam);
-            CloseConnection(connection);
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(query, queryParam);
+            await connection.CloseAsync();
+            return;
         }
         protected async Task<IEnumerable<T>> ExecuteQueryFromEnumerableAsync<T>(string query,object queryParam)
         {
@@ -94,11 +95,11 @@ namespace QANDa.Data
             await connection.OpenAsync();
             return await (queryParam == null ? connection.QueryAsync<T>(query) : connection.QueryAsync<T>(query, queryParam));
         }
-        protected virtual IEnumerable<T> ExecuteMappedQuery<T,U>(string query,object queryParam,string childField, string idField,string childIdField)
+        protected virtual async Task<IEnumerable<T>> ExecuteMappedQuery<T,U>(string query,object queryParam,string childField, string idField,string childIdField)
         {
             using var connection = StartConnection();
             var parentDictionary = new Dictionary<int, T>();
-            return  connection.Query<T, U, T>(query, map:(parent, child) =>
+            var result = await connection.QueryAsync<T, U, T>(query, map:(parent, child) =>
                 {
                     var parentId = ((int)parent.GetType().GetProperty(idField).GetValue(parent, null));
                     //out T parentValue inlined parameter syntax !!
@@ -114,7 +115,8 @@ namespace QANDa.Data
                     
                     parentValue.GetType().GetProperty(childField).SetValue(parentValue, childs);
                     return parentValue;
-                }, queryParam, splitOn:childIdField).Distinct();
+                }, queryParam, splitOn:childIdField);
+            return result.Distinct();
         }
     }
 }

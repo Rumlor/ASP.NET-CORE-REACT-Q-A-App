@@ -1,17 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QANDa.Data;
 using QANDa.Model;
 using QANDa.Service;
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace QANDa.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class QuestionController : ControllerBase
     {
         private readonly IService _service;
@@ -23,12 +22,12 @@ namespace QANDa.Controller
         }
 
         [HttpGet]
-        public IEnumerable<QuestionGetManyResponse> GetQuestions(string search,bool includeAnswers, int pageSize=20, int page = 1)
+        public async Task<IEnumerable<QuestionGetManyResponse>> GetQuestions(string search,bool includeAnswers, int pageSize=20, int page = 1)
         {
             if (string.IsNullOrEmpty(search))
-                return _service.GetQuestions(includeAnswers,pageSize,page);
+                return await _service.GetQuestions(includeAnswers,pageSize,page);
             
-            return _service.GetQuestionsBySearch(search,includeAnswers,pageSize,page);
+            return await _service.GetQuestionsBySearch(search,includeAnswers,pageSize,page);
                         
         }
 
@@ -39,13 +38,13 @@ namespace QANDa.Controller
         }
 
         [HttpGet("{questionId}")]
-        public ActionResult<QuestionGetSingleResponse> GetSingleQuestion(int questionId)
+        public async Task<ActionResult<QuestionGetSingleResponse>> GetSingleQuestion(int questionId)
         {
             var cachedQuestion = _cache.Get(questionId);
 
             if(cachedQuestion == null)
             {
-                cachedQuestion = _service.GetQuestion(questionId);
+                cachedQuestion = await _service.GetQuestion(questionId);
                 
                 if(cachedQuestion == null)
                     return NotFound ();
@@ -57,16 +56,16 @@ namespace QANDa.Controller
         }
         
         [HttpPost]
-        public ActionResult<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest reqeuest)
+        public async Task<ActionResult<QuestionGetSingleResponse>> PostQuestion(QuestionPostRequest reqeuest)
         {
-            var posted = _service.PostQuestion(reqeuest);
+            var posted = await _service.PostQuestion(reqeuest);
             return CreatedAtAction(nameof(PostQuestion), posted);
         }
         
         [HttpPut("{questionId}")]
-        public ActionResult<QuestionGetSingleResponse> PutQuestion(int questionId,QuestionPutRequest reqeuest)
+        public async Task<ActionResult<QuestionGetSingleResponse>> PutQuestion(int questionId,QuestionPutRequest reqeuest)
         {
-           var repsonse = _service.PutQuestion(questionId,reqeuest);
+           var repsonse = await _service.PutQuestion(questionId,reqeuest);
             if (repsonse == null)
             {
                 return NotFound();
@@ -76,9 +75,9 @@ namespace QANDa.Controller
         }
 
         [HttpDelete("{questionId}")]
-        public ActionResult DeleteQuestion(int questionId)
+        public async Task<ActionResult> DeleteQuestion(int questionId)
         {
-           var result = _service.DeleteQuestion(questionId);
+           var result = await _service.DeleteQuestion(questionId);
             if (result)
             {
                 _cache.Remove(questionId);

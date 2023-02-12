@@ -17,32 +17,32 @@ namespace QANDa.Service
             _dataRepositoryWrite = dataRepositoryWrite;
         }
 
-        public AnswerGetResponse GetAnswer(int? answerId)
+        public async Task<AnswerGetResponse> GetAnswer(int? answerId)
         {
-           return _dataRepositoryRead.GetAnswer(answerId);
+           return  await _dataRepositoryRead.GetAnswer(answerId);
         }
 
-        public QuestionGetSingleResponse GetQuestion(int questionId)
+        public async Task<QuestionGetSingleResponse> GetQuestion(int questionId)
         {
-            return _dataRepositoryRead.GetQuestion(questionId);
+            return await _dataRepositoryRead.GetQuestion(questionId);
         }
 
-        public bool QuestionExists(int? questionId)
+        public async Task<bool> QuestionExists(int? questionId)
         {
-            return _dataRepositoryRead.QuestionExists(questionId);
+            return await _dataRepositoryRead.QuestionExists(questionId);
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetQuestions(bool includeAnswers, int page, int pageSize)
+        public async Task<IEnumerable<QuestionGetManyResponse>> GetQuestions(bool includeAnswers, int page, int pageSize)
         {   //to be implemented
             if (includeAnswers)
-                return _dataRepositoryRead.GetQuestionsPaging(null,page, pageSize);
+                return await _dataRepositoryRead.GetQuestionsPaging(null,page, pageSize);
 
-            return _dataRepositoryRead.GetQuestions();
+            return await _dataRepositoryRead.GetQuestions();
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers,int pageSize,int page)
+        public async Task<IEnumerable<QuestionGetManyResponse>> GetQuestionsBySearch(string search,bool includeAnswers,int pageSize,int page)
         {
-            return _dataRepositoryRead.GetQuestionsPaging(search,page,pageSize);
+            return await _dataRepositoryRead.GetQuestionsPaging(search,page,pageSize);
         }
 
         public  async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestionsAsnyc()
@@ -50,9 +50,9 @@ namespace QANDa.Service
           return await _dataRepositoryRead.GetUnAnsweredQuestionsAsync();
         }
 
-        public QuestionGetSingleResponse PostQuestion(QuestionPostRequest postRequest)
+        public async Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest)
         {
-            QuestionPostFullRequest fullRequest = new QuestionPostFullRequest
+            QuestionPostFullRequest fullRequest = new()
             {
                 Title = postRequest.Title,
                 Content = postRequest.Content,
@@ -61,33 +61,33 @@ namespace QANDa.Service
                 UserName = "Demo"
             };
             
-            return _dataRepositoryWrite.PostQuestion(fullRequest);
+            return await _dataRepositoryWrite.PostQuestion(fullRequest);
         }
 
-        public QuestionGetSingleResponse PutQuestion(int questionId, QuestionPutRequest question)
+        public async Task<QuestionGetSingleResponse> PutQuestion(int questionId, QuestionPutRequest question)
         {
-            return _dataRepositoryWrite.PutQuestion(questionId, question);
+            return await _dataRepositoryWrite.PutQuestion(questionId, question);
         }
 
-        public bool DeleteQuestion(int questionId)
+        public async Task<bool> DeleteQuestion(int questionId)
         {
-            return _dataRepositoryWrite.DeleteQuestion(questionId);
+            return await _dataRepositoryWrite.DeleteQuestion(questionId);
         }
 
-        public AnswerGetResponse PostAnswer(AnswerPostRequest answer)
+        public async Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer)
         {
-            return _dataRepositoryWrite.PostAnswer(
-                new AnswerPostRequestFull { Content= answer.Content, 
-                                            Created= DateAndTime.Now, 
-                                            QuestionId=answer.QuestionId , 
-                                            UserId="id",
-                                            UserName="demo" 
-                });
+            return await _dataRepositoryWrite.PostAnswer(
+                                                        new AnswerPostRequestFull { Content= answer.Content, 
+                                                                                    Created= DateAndTime.Now, 
+                                                                                    QuestionId=answer.QuestionId , 
+                                                                                    UserId="id",
+                                                                                    UserName="demo" 
+                                                        });
         }
 
-        public IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
+        public async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestions()
         {
-            return _dataRepositoryRead.GetUnAnsweredQuestions();
+            return await _dataRepositoryRead.GetUnAnsweredQuestions();
         }
     }
 }

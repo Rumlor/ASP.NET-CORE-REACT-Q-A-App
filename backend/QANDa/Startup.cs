@@ -6,7 +6,9 @@ using System.Reflection;
 using DbUp.Engine;
 using QANDa.Data;
 using QANDa.Service;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using QANDa.Auth;
 namespace QANDa
 {
     public class Startup
@@ -32,11 +34,39 @@ namespace QANDa
             {
                 upgrader.PerformUpgrade();
             }
-            services.AddControllers();
-            services.AddSingleton<IDataRepositoryRead, DataRepository>();
-            services.AddSingleton<IDataRepositoryWrite,DataRepository>();
-            services.AddSingleton<IService,QuestionAnswerService>();
-            services.AddSingleton<IDataCache, DataCache>();
+
+
+            services
+                .AddHttpClient()
+                .AddSingleton<IDataRepositoryRead, DataRepository>()
+                .AddSingleton<IDataRepositoryWrite, DataRepository>()
+                .AddSingleton<IService, QuestionAnswerService>()
+                .AddSingleton<IDataCache, DataCache>()
+                .AddScoped<IAuthorizationHandler, MustBeQuestionAuthorHandler>()
+                .AddHttpContextAccessor()
+                .AddControllers();
+
+            //add auth service
+            services
+                .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            })
+                .AddJwtBearer(options =>
+            {
+                options.Authority = Configuration["Auth0:Authority"];
+                options.Audience = Configuration["Auth0:Audience"];
+            });
+            services
+                .AddAuthorization(options => 
+                
+                    options.AddPolicy("MustBeQuestionAuthor", policy => 
+                    
+                        policy.AddRequirements(new MustBeQuestionAuthorRequirement())
+                    )                
+                );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +75,8 @@ namespace QANDa
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(app=> { app.MapControllers(); });
         }
     }

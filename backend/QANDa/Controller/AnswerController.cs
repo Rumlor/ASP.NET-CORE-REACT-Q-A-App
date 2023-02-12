@@ -3,6 +3,7 @@ using QANDa.Data;
 using QANDa.Model;
 using QANDa.Service;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -28,9 +29,9 @@ namespace QANDa.Controller
         }
 
         [HttpPost]
-        public ActionResult<AnswerGetResponse> PostAnswer(AnswerPostRequest answerPost)
+        public async Task<ActionResult<AnswerGetResponse>> PostAnswer(AnswerPostRequest answerPost)
         {
-           var result = _service.PostAnswer(answerPost);
+           var result = await _service.PostAnswer(answerPost);
             if(result == null) return NotFound();
             _cache.Remove(answerPost.QuestionId.Value);
             return result;

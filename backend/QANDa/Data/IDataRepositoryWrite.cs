@@ -1,12 +1,13 @@
 ﻿using QANDa.Model;
+using System.Threading.Tasks;
 
 namespace QANDa.Data
 {
     public interface IDataRepositoryWrite
     {
-        QuestionGetSingleResponse PostQuestion(QuestionPostFullRequest question);
-        QuestionGetSingleResponse PutQuestion(int questionId, QuestionPutRequest question);
-        bool DeleteQuestion(int questionId);
-        AnswerGetResponse PostAnswer(AnswerPostRequestFull answer);
+        Task<QuestionGetSingleResponse> PostQuestion(QuestionPostFullRequest question);
+        Task<QuestionGetSingleResponse> PutQuestion(int questionId, QuestionPutRequest question);
+        Task<bool> DeleteQuestion(int questionId);
+        Task<AnswerGetResponse> PostAnswer(AnswerPostRequestFull answer);
     }
 }

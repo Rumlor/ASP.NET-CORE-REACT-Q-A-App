@@ -14,49 +14,49 @@ namespace QANDa.Data
         {
                
         }
-        public  AnswerGetResponse GetAnswer(int? answerId)
+        public async Task<AnswerGetResponse> GetAnswer(int? answerId)
         {
             if(answerId == null) return null;
-            return ExecuteQueryWithDefault<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByAnswerId] @AnswerId=@AnswerId", new { AnswerId = answerId });
+            return await ExecuteQueryWithDefault<AnswerGetResponse>("EXEC [QandA].[Answer_Get_ByAnswerId] @AnswerId=@AnswerId", new { AnswerId = answerId });
         }
-        public  QuestionGetSingleResponse GetQuestion(int questionId)
+        public  async Task<QuestionGetSingleResponse> GetQuestion(int QuestionId)
         {
             string questionAndAnswersStoredProcedure = @"EXEC QandA.Question_GetSingle @QuestionId=@QuestionId; 
                                                          EXEC [QandA].[Answer_Get_ByQuestionId] @QuestionId=@QuestionId";
-            return ExecuteQueryForMultiple<QuestionGetSingleResponse, AnswerGetResponse>(questionAndAnswersStoredProcedure, "Answers", new {QuestionId=questionId});
+            return await ExecuteQueryForMultipleAsync<QuestionGetSingleResponse,AnswerGetResponse>(questionAndAnswersStoredProcedure,"Answers",new {QuestionId});
         }
-        public  IEnumerable<QuestionGetManyResponse> GetQuestions()
+        public  Task<IEnumerable<QuestionGetManyResponse>> GetQuestions()
         {
             return ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC QandA.Question_GetMany",null);
         }
-        public  IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search,bool includeAnswers)
+        public  Task<IEnumerable<QuestionGetManyResponse>> GetQuestionsBySearch(string search,bool includeAnswers)
         {
             return ExecuteQueryForEnumerable<QuestionGetManyResponse>("EXEC [QandA].[Question_GetMany_BySearch] @Search=@Search", new { Search = search });
         }
-        public  IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions()
+        public  Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestions()
         {
          return ExecuteQueryForEnumerable<QuestionGetManyResponse>(" EXEC [QandA].[Question_GetUnanswered]", null);
         }
-        public  bool QuestionExists(int? questionId)
+        public  async Task<bool> QuestionExists(int? questionId)
         {
             if(!questionId.HasValue || (questionId.HasValue && questionId.Value == 0)) return false;
-            return ExecuteQueryWithDefault<bool>("EXEC [QandA].[Question_Exists] @QuestionId=@QuestionId", new { QuestionId = questionId });
+            return await ExecuteQueryWithDefault<bool>("EXEC [QandA].[Question_Exists] @QuestionId=@QuestionId", new { QuestionId = questionId });
         }
-        public  AnswerGetResponse PostAnswer(AnswerPostRequestFull answer)
+        public  async Task<AnswerGetResponse> PostAnswer(AnswerPostRequestFull answer)
         {
-           var questionExists = QuestionExists(answer.QuestionId.Value);
+           var questionExists = await QuestionExists(answer.QuestionId.Value);
             if (!questionExists) return null;
-           return  ExecuteQueryFirst<AnswerGetResponse>(@"[QandA].[Answer_Post] 
+           return  await ExecuteQueryFirst<AnswerGetResponse>(@"[QandA].[Answer_Post] 
                                                        @QuestionId=@QuestionId
                                                       ,@Content=@Content
                                                       ,@UserId=@UserId
                                                       ,@UserName=@UserName
                                                       ,@Created=@Created", answer);
         }
-        public  QuestionGetSingleResponse PostQuestion(QuestionPostFullRequest question)
+        public async Task<QuestionGetSingleResponse> PostQuestion(QuestionPostFullRequest question)
         {
-            QuestionGetSingleResponse postedQuestion = ExecuteQueryFirst<QuestionGetSingleResponse>(@"
-                                                           EXEC [QandA].[Question_Post]
+            QuestionGetSingleResponse postedQuestion = await ExecuteQueryFirst<QuestionGetSingleResponse>(@"
+                                                                EXEC [QandA].[Question_Post]
 		                                                        @Title = @Title,
 		                                                        @Content = @Content,
 		                                                        @UserId = @UserId,
@@ -64,31 +64,31 @@ namespace QANDa.Data
 		                                                        @Created =  @Created", question);
             return postedQuestion;
         }
-        public  QuestionGetSingleResponse PutQuestion(int questionId, QuestionPutRequest question)
+        public async Task<QuestionGetSingleResponse> PutQuestion(int questionId, QuestionPutRequest question)
         {
-           QuestionGetSingleResponse questionFromDB =  GetQuestion(questionId);
+           QuestionGetSingleResponse questionFromDB =  await GetQuestion(questionId);
            if(questionFromDB == null) {
                 return null;
            }
            question.Content = string.IsNullOrEmpty(question.Content) ? question.Content : questionFromDB.Content;
            question.Title = string.IsNullOrEmpty(question.Title) ? question.Title : questionFromDB.Title;
-           Execute(@"EXEC [QandA].[Question_Put]
+           await Execute(@"EXEC [QandA].[Question_Put]
                      @QuestionId=@QuestionId,
                      @Title=@Title,
                      @Content=@Content", new {QuestionId=questionId, question.Title,question.Content});
             return new QuestionGetSingleResponse{ QuestionId = questionId, Title=question.Title, Content=question.Content };
         }
-        public  bool DeleteQuestion(int questionId)
+        public  async Task<bool> DeleteQuestion(int questionId)
         {
-            var question = GetQuestion(questionId);
+            var question = await GetQuestion(questionId);
             if (question == null)
                 return false; 
-            Execute(@"EXEC [QandA].[Question_Delete] @QuestionId=@QuestionId", new { QuestionId = questionId });
+            await Execute(@"EXEC [QandA].[Question_Delete] @QuestionId=@QuestionId", new { QuestionId = questionId });
             return true;
         }
-        public IEnumerable<QuestionGetManyResponse> GetQuestionsWithAnswers()
+        public async Task<IEnumerable<QuestionGetManyResponse>> GetQuestionsWithAnswers()
         {
-            return ExecuteMappedQuery<QuestionGetManyResponse,AnswerGetResponse>("EXEC [QandA].[Question_GetMany_WithAnswers]", null, "Answers", "QuestionId","AnswerId");
+            return  await ExecuteMappedQuery<QuestionGetManyResponse,AnswerGetResponse>("EXEC [QandA].[Question_GetMany_WithAnswers]", null, "Answers", "QuestionId","AnswerId");
             
         }
         public async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestionsAsync()
@@ -96,7 +96,7 @@ namespace QANDa.Data
            return await  ExecuteQueryFromEnumerableAsync<QuestionGetManyResponse>("EXEC QandA.Question_GetUnanswered", null);
             
         }
-        public IEnumerable<QuestionGetManyResponse> GetQuestionsPaging(string search, int pageNumber, int pageSize)
+        public Task<IEnumerable<QuestionGetManyResponse>> GetQuestionsPaging(string search, int pageNumber, int pageSize)
         {
             if (search != null)
             {

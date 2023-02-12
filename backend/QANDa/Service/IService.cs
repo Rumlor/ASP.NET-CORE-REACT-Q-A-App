@@ -6,16 +6,16 @@ namespace QANDa.Service
 {
     public interface IService
     {
-        QuestionGetSingleResponse PostQuestion(QuestionPostRequest postRequest);
-        IEnumerable<QuestionGetManyResponse> GetQuestions(bool includeAnswers, int pageSize, int page);
-        IEnumerable<QuestionGetManyResponse> GetQuestionsBySearch(string search, bool includeAnswers, int pageSize, int page);
+        Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest);
+        Task<IEnumerable<QuestionGetManyResponse>> GetQuestions(bool includeAnswers, int pageSize, int page);
+        Task<IEnumerable<QuestionGetManyResponse>> GetQuestionsBySearch(string search, bool includeAnswers, int pageSize, int page);
         Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestionsAsnyc();
-        IEnumerable<QuestionGetManyResponse> GetUnAnsweredQuestions();
-        QuestionGetSingleResponse GetQuestion(int questionId);
-        bool QuestionExists(int? questionId);
-        AnswerGetResponse GetAnswer(int? answerId);
-        QuestionGetSingleResponse PutQuestion(int questionId, QuestionPutRequest question);
-        bool DeleteQuestion(int questionId);
-        AnswerGetResponse PostAnswer(AnswerPostRequest answer);
+        Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestions();
+        Task<QuestionGetSingleResponse> GetQuestion(int questionId);
+        Task<bool> QuestionExists(int? questionId);
+        Task<AnswerGetResponse> GetAnswer(int? answerId);
+        Task<QuestionGetSingleResponse> PutQuestion(int questionId, QuestionPutRequest question);
+        Task<bool> DeleteQuestion(int questionId);
+        Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer);
     }
 }
