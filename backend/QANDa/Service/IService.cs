@@ -6,7 +6,7 @@ namespace QANDa.Service
 {
     public interface IService
     {
-        Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest);
+        Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest,string userId,string token);
         Task<IEnumerable<QuestionGetManyResponse>> GetQuestions(bool includeAnswers, int pageSize, int page);
         Task<IEnumerable<QuestionGetManyResponse>> GetQuestionsBySearch(string search, bool includeAnswers, int pageSize, int page);
         Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestionsAsnyc();
@@ -16,6 +16,6 @@ namespace QANDa.Service
         Task<AnswerGetResponse> GetAnswer(int? answerId);
         Task<QuestionGetSingleResponse> PutQuestion(int questionId, QuestionPutRequest question);
         Task<bool> DeleteQuestion(int questionId);
-        Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer);
+        Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer,string token,string userId);
     }
 }

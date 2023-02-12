@@ -4,6 +4,8 @@ using QANDa.Data;
 using QANDa.Model;
 using QANDa.Service;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace QANDa.Controller
@@ -58,11 +60,17 @@ namespace QANDa.Controller
         [HttpPost]
         public async Task<ActionResult<QuestionGetSingleResponse>> PostQuestion(QuestionPostRequest reqeuest)
         {
-            var posted = await _service.PostQuestion(reqeuest);
+            if (reqeuest == null)
+                return BadRequest();
+
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            string token = Request.Headers["Authorization"].First();
+            var posted = await _service.PostQuestion(reqeuest, userId,token);
             return CreatedAtAction(nameof(PostQuestion), posted);
         }
         
         [HttpPut("{questionId}")]
+        [Authorize(Policy = "MustBeQuestionAuthor")]
         public async Task<ActionResult<QuestionGetSingleResponse>> PutQuestion(int questionId,QuestionPutRequest reqeuest)
         {
            var repsonse = await _service.PutQuestion(questionId,reqeuest);
@@ -75,6 +83,7 @@ namespace QANDa.Controller
         }
 
         [HttpDelete("{questionId}")]
+        [Authorize(Policy = "MustBeQuestionAuthor")]
         public async Task<ActionResult> DeleteQuestion(int questionId)
         {
            var result = await _service.DeleteQuestion(questionId);

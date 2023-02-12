@@ -10,14 +10,14 @@ namespace QANDa.Auth
     public class MustBeQuestionAuthorHandler : AuthorizationHandler<MustBeQuestionAuthorRequirement>
     {
         private readonly IDataRepositoryRead _dataRepositoryRead;
-        private readonly HttpContextAccessor _contextAccessor;
+        private readonly IHttpContextAccessor _contextAccessor;
         
-        public MustBeQuestionAuthorHandler(IDataRepositoryRead read, HttpContextAccessor accessor)
+        public MustBeQuestionAuthorHandler(IDataRepositoryRead read, IHttpContextAccessor accessor)
         {
             _dataRepositoryRead = read;
             _contextAccessor = accessor;
         }
-        
+
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, MustBeQuestionAuthorRequirement requirement)
         {
             if (!context.User.Identity.IsAuthenticated)
@@ -34,6 +34,12 @@ namespace QANDa.Auth
                 context.Succeed(requirement);
                 return;
             }
+            if(question.UserId != userId)
+            {
+                context.Fail();
+                return;
+            }
+            context.Succeed(requirement);
         }
     }
 }

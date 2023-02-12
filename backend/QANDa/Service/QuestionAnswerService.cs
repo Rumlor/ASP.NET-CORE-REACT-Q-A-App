@@ -1,7 +1,11 @@
-﻿using Microsoft.VisualBasic;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.VisualBasic;
 using QANDa.Data;
 using QANDa.Model;
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace QANDa.Service
@@ -10,11 +14,14 @@ namespace QANDa.Service
     {
         private readonly IDataRepositoryRead _dataRepositoryRead;
         private readonly IDataRepositoryWrite _dataRepositoryWrite;
-
-        public QuestionAnswerService(IDataRepositoryRead dataRepositoryRead, IDataRepositoryWrite dataRepositoryWrite)
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly string _auth0UserInfo;
+        public QuestionAnswerService(IConfiguration config ,IDataRepositoryRead dataRepositoryRead, IDataRepositoryWrite dataRepositoryWrite,IHttpClientFactory factory)
         {
             _dataRepositoryRead = dataRepositoryRead;
             _dataRepositoryWrite = dataRepositoryWrite;
+            _clientFactory = factory;
+            _auth0UserInfo = $"{config["Auth0:Authority"]}userinfo";
         }
 
         public async Task<AnswerGetResponse> GetAnswer(int? answerId)
@@ -50,15 +57,25 @@ namespace QANDa.Service
           return await _dataRepositoryRead.GetUnAnsweredQuestionsAsync();
         }
 
-        public async Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest)
+        public async Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest,string userId,string token)
         {
+            object userName = "" ;
+            var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfo, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var dictionaryResponse = JsonSerializer.Deserialize<Dictionary<string,object>>(content,new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                dictionaryResponse.TryGetValue("name", out userName);
+            }
+
             QuestionPostFullRequest fullRequest = new()
             {
                 Title = postRequest.Title,
                 Content = postRequest.Content,
                 Created = DateAndTime.Now,
-                UserId = "id",
-                UserName = "Demo"
+                UserId = userId,
+                UserName = userName as string
             };
             
             return await _dataRepositoryWrite.PostQuestion(fullRequest);
@@ -74,20 +91,38 @@ namespace QANDa.Service
             return await _dataRepositoryWrite.DeleteQuestion(questionId);
         }
 
-        public async Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer)
+        public async Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer, string token, string userId)
         {
+            object userName = "";
+            var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfo, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var dictionaryResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                dictionaryResponse.TryGetValue("name", out userName);
+            }
+
             return await _dataRepositoryWrite.PostAnswer(
-                                                        new AnswerPostRequestFull { Content= answer.Content, 
-                                                                                    Created= DateAndTime.Now, 
-                                                                                    QuestionId=answer.QuestionId , 
-                                                                                    UserId="id",
-                                                                                    UserName="demo" 
+                                                        new AnswerPostRequestFull { Content = answer.Content, 
+                                                                                    Created = DateAndTime.Now, 
+                                                                                    QuestionId = answer.QuestionId , 
+                                                                                    UserId = userId,
+                                                                                    UserName = userName as string
                                                         });
         }
 
         public async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestions()
         {
             return await _dataRepositoryRead.GetUnAnsweredQuestions();
+        }
+    
+        private async Task<HttpResponseMessage> SendAsyncHttpRequest(HttpMethod method,string uri,string token)
+        {
+            var httpRequest = new HttpRequestMessage(HttpMethod.Get, uri);
+            httpRequest.Headers.Add("Authorization", token);
+            var client = _clientFactory.CreateClient();
+            return await client.SendAsync(httpRequest);
         }
     }
 }

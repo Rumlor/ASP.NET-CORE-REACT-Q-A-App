@@ -34,7 +34,9 @@ namespace QANDa
             {
                 upgrader.PerformUpgrade();
             }
-
+            
+            services.AddHttpContextAccessor();
+            services.AddControllers();
 
             services
                 .AddHttpClient()
@@ -42,9 +44,9 @@ namespace QANDa
                 .AddSingleton<IDataRepositoryWrite, DataRepository>()
                 .AddSingleton<IService, QuestionAnswerService>()
                 .AddSingleton<IDataCache, DataCache>()
-                .AddScoped<IAuthorizationHandler, MustBeQuestionAuthorHandler>()
-                .AddHttpContextAccessor()
-                .AddControllers();
+                .AddScoped<IAuthorizationHandler, MustBeQuestionAuthorHandler>();
+
+
 
             //add auth service
             services
@@ -60,13 +62,24 @@ namespace QANDa
                 options.Audience = Configuration["Auth0:Audience"];
             });
             services
-                .AddAuthorization(options => 
-                
-                    options.AddPolicy("MustBeQuestionAuthor", policy => 
-                    
+                .AddAuthorization(options => {
+
+                    options.AddPolicy("MustBeQuestionAuthor", policy =>
+
                         policy.AddRequirements(new MustBeQuestionAuthorRequirement())
-                    )                
-                );
+                    );
+                });
+
+            services
+                 .AddCors(options => {
+                     options.AddPolicy("CorsPolicy", builder =>
+                     {
+                         builder
+                         .AllowAnyMethod()
+                         .AllowAnyHeader()
+                         .WithOrigins(Configuration.GetSection("Frontend").Get<string[]>());
+                     });
+                 });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,6 +88,7 @@ namespace QANDa
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(app=> { app.MapControllers(); });
