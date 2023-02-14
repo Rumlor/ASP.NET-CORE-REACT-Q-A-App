@@ -37,10 +37,11 @@ class Question extends Component<Prop, any> {
             color: ${gray3};
           `}
         >
+          {data.content}
+          <br />
           {`Asked by ${
             data.userName
           } on ${data.created.toLocaleDateString()} ${data.created.toLocaleTimeString()}`}
-          {data.content}
         </div>
       </div>
     ) : (

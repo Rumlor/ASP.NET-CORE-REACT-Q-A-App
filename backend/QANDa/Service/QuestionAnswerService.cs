@@ -15,13 +15,13 @@ namespace QANDa.Service
         private readonly IDataRepositoryRead _dataRepositoryRead;
         private readonly IDataRepositoryWrite _dataRepositoryWrite;
         private readonly IHttpClientFactory _clientFactory;
-        private readonly string _auth0UserInfo;
+        private readonly string _auth0UserInfoUri;
         public QuestionAnswerService(IConfiguration config ,IDataRepositoryRead dataRepositoryRead, IDataRepositoryWrite dataRepositoryWrite,IHttpClientFactory factory)
         {
             _dataRepositoryRead = dataRepositoryRead;
             _dataRepositoryWrite = dataRepositoryWrite;
             _clientFactory = factory;
-            _auth0UserInfo = $"{config["Auth0:Authority"]}userinfo";
+            _auth0UserInfoUri = $"{config["Auth0:Authority"]}userinfo";
         }
 
         public async Task<AnswerGetResponse> GetAnswer(int? answerId)
@@ -60,7 +60,7 @@ namespace QANDa.Service
         public async Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest,string userId,string token)
         {
             object userName = "" ;
-            var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfo, token);
+            var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfoUri, token);
 
             if (response.IsSuccessStatusCode)
             {
@@ -94,7 +94,7 @@ namespace QANDa.Service
         public async Task<AnswerGetResponse> PostAnswer(AnswerPostRequest answer, string token, string userId)
         {
             object userName = "";
-            var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfo, token);
+            var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfoUri, token);
 
             if (response.IsSuccessStatusCode)
             {

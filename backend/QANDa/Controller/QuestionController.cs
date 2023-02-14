@@ -34,6 +34,7 @@ namespace QANDa.Controller
         }
 
         [HttpGet("unanswered")]
+        [AllowAnonymous]
         public  async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestions()
         {
             return await _service.GetUnAnsweredQuestionsAsnyc();

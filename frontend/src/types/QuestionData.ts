@@ -1,3 +1,4 @@
+import { httpCall } from '../http/Http';
 export interface QuestionData {
   questionId: number;
   title: string;
@@ -75,8 +76,16 @@ export const gellAllQuestions = (): QuestionData[] => {
 };
 
 export const getAllAnsweredQuestions = async (): Promise<QuestionData[]> => {
-  await wait(500);
-  return questions.filter((questionData) => questionData.answers.length === 0);
+  let unAnsweredQuestions: QuestionData[] = [];
+  const response = httpCall<QuestionData[]>({
+    path: 'question/unanswered',
+  });
+  unAnsweredQuestions = (await response).body || [];
+
+  return unAnsweredQuestions.filter((questionData) => {
+    questionData.created = new Date(questionData.created);
+    return questionData.answers.length === 0;
+  });
 };
 
 export const searchQuestions = async (
@@ -93,11 +102,9 @@ export const searchQuestions = async (
 export const getQuestionWithId = async (
   id: number
 ): Promise<QuestionData | null> => {
-  await wait(500);
-  const filteredQuestions = questions.filter(
-    (questionData) => questionData.questionId === id
-  );
-  return filteredQuestions.length !== 0 ? filteredQuestions[0] : null;
+  let question: QuestionData | undefined;
+  question = (await httpCall<QuestionData>({ path: `question/${id}` })).body;
+  return question || null;
 };
 
 export const postAnswer = async (

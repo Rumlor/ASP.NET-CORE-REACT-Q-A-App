@@ -44,6 +44,8 @@ class HomePage extends Component<HomePageProp, any> {
   }
   render(): ReactNode {
     const { selector } = this.props;
+    console.log('state!!');
+    console.log(selector);
     return (
       <Page>
         <div
