@@ -1,20 +1,20 @@
 import { webAPIUrl } from '../AppSettings';
 
-export interface HttpApiRequest<RequestBodyType> {
+export interface HttpApiRequest<REQ> {
   path: string;
-  payload?: RequestBodyType;
+  payload?: REQ;
 }
-export interface HttpApiResponse<ResponseBodyType> {
+export interface HttpApiResponse<RES> {
   ok: boolean;
-  body?: ResponseBodyType;
+  body?: RES;
 }
 
-export const httpCall = async <ResponseBodyType, RequestBodyType = undefined>(
-  config: HttpApiRequest<RequestBodyType>
-): Promise<HttpApiResponse<ResponseBodyType>> => {
+export const httpCall = async <RES, REQ = undefined>(
+  config: HttpApiRequest<REQ>
+): Promise<HttpApiResponse<RES>> => {
   const request = new Request(`${webAPIUrl}${config.path}`);
   const response = await fetch(request);
-  const httpResponse: HttpApiResponse<ResponseBodyType> = { ok: false };
+  const httpResponse: HttpApiResponse<RES> = { ok: false };
   if (response.ok) {
     const body = await response.json();
     httpResponse.ok = true;
