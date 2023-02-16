@@ -31,7 +31,7 @@ import {
   gettingQuestion,
   gotQuestion,
 } from '../store/question/QuestionActions';
-import { AnyAction, Dispatch } from 'redux';
+import { Dispatch } from 'redux';
 import { QuestionsState } from '../store/question/QuestionState';
 
 interface QuestionPageProp {
@@ -39,7 +39,7 @@ interface QuestionPageProp {
   register: UseFormRegister<QuestionPageContent>;
   handleSubmit: UseFormHandleSubmit<QuestionPageContent>;
   formState: FormState<QuestionPageContent>;
-  dispatcher: Dispatch<AnyAction>;
+  dispatcher: Dispatch;
   selector: QuestionsState;
 }
 

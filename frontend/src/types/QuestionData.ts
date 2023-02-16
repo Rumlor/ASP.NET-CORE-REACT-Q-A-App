@@ -71,38 +71,47 @@ export const questions: QuestionData[] = [
   },
 ];
 
-export const gellAllQuestions = (): QuestionData[] => {
-  return questions;
-};
-
 export const getAllAnsweredQuestions = async (): Promise<QuestionData[]> => {
   let unAnsweredQuestions: QuestionData[] = [];
   const apiRequest: HttpApiRequest = {
     path: 'question/unanswered',
   };
-  const response = httpCall<QuestionData[]>(apiRequest);
-  unAnsweredQuestions = (await response).body || [];
+  const response = await httpCall<QuestionData[]>(apiRequest);
 
-  unAnsweredQuestions.forEach((q) => (q.created = new Date(q.created)));
+  if (response.ok && response.body) {
+    unAnsweredQuestions = response.body.map((item) => {
+      item.created = new Date(item.created);
+      return item;
+    });
+    unAnsweredQuestions = response.body;
+  }
+
   return unAnsweredQuestions;
 };
 
 export const searchQuestions = async (
   criteria: string
 ): Promise<QuestionData[]> => {
-  await wait(500);
-  return questions.filter(
-    (questionData) =>
-      questionData.title.toLowerCase().indexOf(criteria) >= 0 ||
-      questionData.content.toLowerCase().indexOf(criteria) >= 0
-  );
+  let questions: QuestionData[] | undefined;
+  const response = await httpCall<QuestionData[]>({
+    path: `question?search=${criteria}`,
+  });
+  if (response && response.ok && response.body) questions = response.body;
+  if (questions && questions.length > 0)
+    questions.map((question) => {
+      question.created = new Date(question.created);
+      return question;
+    });
+  return questions || [];
 };
 
 export const getQuestionWithId = async (
   id: number
 ): Promise<QuestionData | null> => {
   let question: QuestionData | undefined;
-  question = (await httpCall<QuestionData>({ path: `question/${id}` })).body;
+  const response = await httpCall<QuestionData>({ path: `question/${id}` });
+  if (response && response.ok && response.body) question = response.body;
+  if (question) question.created = new Date(question.created);
   return question || null;
 };
 
