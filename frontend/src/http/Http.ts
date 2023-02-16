@@ -1,6 +1,6 @@
 import { webAPIUrl } from '../AppSettings';
 
-export interface HttpApiRequest<REQ> {
+export interface HttpApiRequest<REQ = undefined> {
   path: string;
   payload?: REQ;
 }

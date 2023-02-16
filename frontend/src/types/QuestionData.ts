@@ -1,4 +1,4 @@
-import { httpCall } from '../http/Http';
+import { HttpApiRequest, httpCall } from '../http/Http';
 export interface QuestionData {
   questionId: number;
   title: string;
@@ -77,15 +77,14 @@ export const gellAllQuestions = (): QuestionData[] => {
 
 export const getAllAnsweredQuestions = async (): Promise<QuestionData[]> => {
   let unAnsweredQuestions: QuestionData[] = [];
-  const response = httpCall<QuestionData[]>({
+  const apiRequest: HttpApiRequest = {
     path: 'question/unanswered',
-  });
+  };
+  const response = httpCall<QuestionData[]>(apiRequest);
   unAnsweredQuestions = (await response).body || [];
 
-  return unAnsweredQuestions.filter((questionData) => {
-    questionData.created = new Date(questionData.created);
-    return questionData.answers.length === 0;
-  });
+  unAnsweredQuestions.forEach((q) => (q.created = new Date(q.created)));
+  return unAnsweredQuestions;
 };
 
 export const searchQuestions = async (
