@@ -26,13 +26,13 @@ export const httpCall = async <RES, REQ = undefined>(
     return httpResponse;
   }
 };
-const logHttp = async (request: Request, response: Response): Promise<void> => {
+const logHttp = (request: Request, response: Response): void => {
   const contentType = response.headers.get('content-type');
   let body;
   if (contentType && contentType.indexOf('application/json') !== -1) {
-    body = await response.json();
+    body = response.json();
   } else {
-    body = await response.text();
+    body = response.text();
   }
   console.error(
     `Error while requesting ${request.method} ${request.url}`,
