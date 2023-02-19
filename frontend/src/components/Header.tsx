@@ -4,11 +4,13 @@ import { css } from '@emotion/react';
 import { fontFamily, fontSize, gray1, gray2, gray5 } from '../styles/Style';
 import { Icon } from './Icon';
 import { Link, NavigateFunction, useNavigate } from 'react-router-dom';
+import { IAuth0Context, useAuthContext } from '../auth/Auth';
 interface HeaderState {
   criteria: string;
 }
 interface HeaderProp {
   navigate: NavigateFunction;
+  authContext: IAuth0Context;
 }
 class Header extends React.Component<HeaderProp, HeaderState> {
   state: HeaderState = {
@@ -24,6 +26,8 @@ class Header extends React.Component<HeaderProp, HeaderState> {
       this.props.navigate(`/search?criteria=${this.state.criteria}`);
   }
   render(): React.ReactNode {
+    const { loading, user, isAuthenticated } = this.props.authContext;
+    console.log(this.props.authContext);
     return (
       <div
         css={css`
@@ -72,27 +76,57 @@ class Header extends React.Component<HeaderProp, HeaderState> {
             }
           `}
         />
-        <Link
-          to={'signin'}
-          css={css`
-            font-family: ${fontFamily};
-            font-size: ${fontSize};
-            padding: 5px 10px;
-            background-color: transparent;
-            color: ${gray2};
-            text-decoration: none;
-            cursor: pointer;
-            span {
-              margin-left: 7px;
-            }
-            :focus {
-              outline-color: ${gray5};
-            }
-          `}
-        >
-          <Icon />
-          <span>Sign In</span>
-        </Link>
+        <div>
+          {!loading &&
+            (isAuthenticated ? (
+              <div>
+                <span>{user?.name}</span>
+                <Link
+                  to={'signout'}
+                  css={css`
+                    font-family: ${fontFamily};
+                    font-size: ${fontSize};
+                    padding: 5px 10px;
+                    background-color: transparent;
+                    color: ${gray2};
+                    text-decoration: none;
+                    cursor: pointer;
+                    span {
+                      margin-left: 7px;
+                    }
+                    :focus {
+                      outline-color: ${gray5};
+                    }
+                  `}
+                >
+                  <Icon />
+                  <span>Sign Out</span>
+                </Link>
+              </div>
+            ) : (
+              <Link
+                to={'signin'}
+                css={css`
+                  font-family: ${fontFamily};
+                  font-size: ${fontSize};
+                  padding: 5px 10px;
+                  background-color: transparent;
+                  color: ${gray2};
+                  text-decoration: none;
+                  cursor: pointer;
+                  span {
+                    margin-left: 7px;
+                  }
+                  :focus {
+                    outline-color: ${gray5};
+                  }
+                `}
+              >
+                <Icon />
+                <span>Sign In</span>
+              </Link>
+            ))}
+        </div>
       </div>
     );
   }
@@ -100,6 +134,7 @@ class Header extends React.Component<HeaderProp, HeaderState> {
 
 function HeaderFunc(prop: any) {
   const navigate = useNavigate();
-  return <Header {...prop} navigate={navigate} />;
+  const authContext = useAuthContext();
+  return <Header {...prop} navigate={navigate} authContext={authContext} />;
 }
 export { HeaderFunc };

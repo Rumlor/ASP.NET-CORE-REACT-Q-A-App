@@ -15,11 +15,13 @@ import { getAllAnsweredQuestions } from '../types/QuestionData';
 import { AppState } from '../store/Store';
 import { AnyAction } from 'redux';
 import { QuestionsState } from '../store/question/QuestionState';
+import { useAuthContext } from '../auth/Auth';
 
 interface HomePageProp {
   navigation: any;
   dispatch: Dispatch<AnyAction>;
   selector: QuestionsState;
+  isAuthenticated: boolean;
 }
 
 class HomePage extends Component<HomePageProp, any> {
@@ -43,7 +45,7 @@ class HomePage extends Component<HomePageProp, any> {
     this.props.navigation('ask');
   }
   render(): ReactNode {
-    const { selector } = this.props;
+    const { selector, isAuthenticated } = this.props;
     console.log('state!!');
     console.log(selector);
     return (
@@ -56,9 +58,13 @@ class HomePage extends Component<HomePageProp, any> {
           `}
         >
           <PageTitle>Unanswered Questions</PageTitle>
-          <PrimaryButton onClick={(e) => this.goAskPage(e)}>
-            Ask a question
-          </PrimaryButton>
+          <div>
+            {isAuthenticated && (
+              <PrimaryButton onClick={(e) => this.goAskPage(e)}>
+                Ask a question
+              </PrimaryButton>
+            )}
+          </div>
         </div>
         {selector.loading ? (
           <div>Questions Are Loading..</div>
@@ -72,6 +78,7 @@ class HomePage extends Component<HomePageProp, any> {
 function HomePageFunc(props: any) {
   const nav = useNavigate();
   const dispatch = useDispatch();
+  const { isAuthenticated } = useAuthContext();
   const selector = useSelector((state: AppState) => state.questions);
   return (
     <HomePage
@@ -79,6 +86,7 @@ function HomePageFunc(props: any) {
       navigation={nav}
       dispatch={dispatch}
       selector={selector}
+      isAuthenticated={isAuthenticated}
     ></HomePage>
   );
 }

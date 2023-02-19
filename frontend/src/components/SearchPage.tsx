@@ -6,7 +6,10 @@ import { useDispatch } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { AnyAction } from 'redux';
 import { URLSearchParams } from 'url';
-import { searchedQuestions } from '../store/question/QuestionActions';
+import {
+  searchedQuestions,
+  searchingQuestions,
+} from '../store/question/QuestionActions';
 import { QuestionsState } from '../store/question/QuestionState';
 import { AppState } from '../store/Store';
 import { searchQuestions } from '../types/QuestionData';
@@ -65,6 +68,7 @@ class SearchPage extends Component<SearchPageProp, any> {
   }
   async populateQuestionsData(): Promise<void> {
     const searchParamValue = this.props.searchParams.get('criteria') || '';
+    this.props.dispatcher(searchingQuestions());
     const results = await searchQuestions(searchParamValue);
     this.props.dispatcher(searchedQuestions(results));
   }
