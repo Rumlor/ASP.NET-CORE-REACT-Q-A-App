@@ -22,6 +22,7 @@ interface HomePageProp {
   dispatch: Dispatch<AnyAction>;
   selector: QuestionsState;
   isAuthenticated: boolean;
+  getToken: () => Promise<string>;
 }
 
 class HomePage extends Component<HomePageProp, any> {
@@ -35,9 +36,10 @@ class HomePage extends Component<HomePageProp, any> {
   }
 
   async populateQuestionData(): Promise<void> {
-    const { dispatch } = this.props;
+    const { dispatch, getToken } = this.props;
     dispatch(gettingUnAnsweredQuestions());
-    const result = await getAllAnsweredQuestions();
+    const token = await getToken();
+    const result = await getAllAnsweredQuestions(token);
     dispatch(gotUnAnsweredQuestions(result));
   }
 
@@ -78,7 +80,7 @@ class HomePage extends Component<HomePageProp, any> {
 function HomePageFunc(props: any) {
   const nav = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, getToken } = useAuthContext();
   const selector = useSelector((state: AppState) => state.questions);
   return (
     <HomePage
@@ -87,6 +89,7 @@ function HomePageFunc(props: any) {
       dispatch={dispatch}
       selector={selector}
       isAuthenticated={isAuthenticated}
+      getToken={getToken}
     ></HomePage>
   );
 }

@@ -3,6 +3,7 @@ import { webAPIUrl } from '../AppSettings';
 export interface HttpApiRequest<REQ = undefined> {
   path: string;
   payload?: REQ;
+  token: string;
 }
 export interface HttpApiResponse<RES> {
   ok: boolean;
@@ -13,6 +14,7 @@ export const httpCall = async <RES, REQ = undefined>(
   config: HttpApiRequest<REQ>
 ): Promise<HttpApiResponse<RES>> => {
   const request = new Request(`${webAPIUrl}${config.path}`);
+  request.headers.set('Authorization', 'Bearer ' + config.token);
   const response = await fetch(request);
   const httpResponse: HttpApiResponse<RES> = { ok: false };
   if (response.ok) {

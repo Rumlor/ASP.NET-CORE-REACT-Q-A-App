@@ -33,6 +33,7 @@ import {
 } from '../store/question/QuestionActions';
 import { Dispatch } from 'redux';
 import { QuestionsState } from '../store/question/QuestionState';
+import { useAuthContext } from '../auth/Auth';
 
 interface QuestionPageProp {
   pageParam: any;
@@ -41,6 +42,8 @@ interface QuestionPageProp {
   formState: FormState<QuestionPageContent>;
   dispatcher: Dispatch;
   selector: QuestionsState;
+  isAuthenticated: boolean;
+  getToken: () => Promise<string>;
 }
 
 type QuestionPageContent = {
@@ -51,8 +54,10 @@ class QuestionPage extends Component<QuestionPageProp, any> {
     this.populateQuestionData();
   }
   async populateQuestionData(): Promise<void> {
+    const token = await this.props.getToken();
     const result = await getQuestionWithId(
-      Number(this.props.pageParam.questionId)
+      Number(this.props.pageParam.questionId),
+      token
     );
     this.props.dispatcher(gotQuestion(result));
   }
@@ -74,6 +79,7 @@ class QuestionPage extends Component<QuestionPageProp, any> {
   };
   render(): ReactNode {
     const { viewing: question, loading } = this.props.selector;
+    const isAuthenticated = this.props.isAuthenticated;
     console.log(question);
     return (
       <Page>
@@ -134,6 +140,7 @@ class QuestionPage extends Component<QuestionPageProp, any> {
             <FieldContainer>
               <FieldLabel htmlFor="content">Your Answer</FieldLabel>
               <FieldTextArea
+                disabled={!isAuthenticated}
                 id="content"
                 placeholder="Description of your question.."
                 {...this.props.register('content', {
@@ -146,7 +153,13 @@ class QuestionPage extends Component<QuestionPageProp, any> {
               ></FieldTextArea>
             </FieldContainer>
             <FormButtonContainer>
-              <PrimaryButton type="submit">Submit Your Answer</PrimaryButton>
+              <div>
+                {isAuthenticated && (
+                  <PrimaryButton type="submit">
+                    Submit Your Answer
+                  </PrimaryButton>
+                )}
+              </div>
               {this.props.formState.errors.content?.message && (
                 <FieldError>
                   {this.props.formState.errors.content.message}
@@ -163,6 +176,7 @@ class QuestionPage extends Component<QuestionPageProp, any> {
 function QuestionPageFunc(props: any) {
   const param = useParams();
   const dispatcher = useDispatch();
+  const { isAuthenticated, getToken } = useAuthContext();
   const selector = useSelector((state: AppState) => state.questions);
   const { register, handleSubmit, formState } = useForm<QuestionPageContent>({
     defaultValues: { content: '' },
@@ -176,6 +190,8 @@ function QuestionPageFunc(props: any) {
       formState={formState}
       dispatcher={dispatcher}
       selector={selector}
+      isAuthenticated={isAuthenticated}
+      getToken={getToken}
     />
   );
 }

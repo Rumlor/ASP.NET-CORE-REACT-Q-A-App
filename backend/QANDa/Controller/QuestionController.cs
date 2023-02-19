@@ -24,7 +24,6 @@ namespace QANDa.Controller
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IEnumerable<QuestionGetManyResponse>> GetQuestions(string search,bool includeAnswers, int pageSize=20, int page = 1)
         {
             if (string.IsNullOrEmpty(search))
@@ -35,14 +34,12 @@ namespace QANDa.Controller
         }
 
         [HttpGet("unanswered")]
-        [AllowAnonymous]
         public  async Task<IEnumerable<QuestionGetManyResponse>> GetUnAnsweredQuestions()
         {
             return await _service.GetUnAnsweredQuestionsAsnyc();
         }
 
         [HttpGet("{questionId}")]
-        [AllowAnonymous]
         public async Task<ActionResult<QuestionGetSingleResponse>> GetSingleQuestion(int questionId)
         {
             var cachedQuestion = _cache.Get(questionId);

@@ -71,10 +71,13 @@ export const questions: QuestionData[] = [
   },
 ];
 
-export const getAllAnsweredQuestions = async (): Promise<QuestionData[]> => {
+export const getAllAnsweredQuestions = async (
+  token: string
+): Promise<QuestionData[]> => {
   let unAnsweredQuestions: QuestionData[] = [];
   const apiRequest: HttpApiRequest = {
     path: 'question/unanswered',
+    token: token,
   };
   const response = await httpCall<QuestionData[]>(apiRequest);
 
@@ -95,6 +98,7 @@ export const searchQuestions = async (
   let questions: QuestionData[] | undefined;
   const response = await httpCall<QuestionData[]>({
     path: `question?search=${criteria}`,
+    token: '',
   });
   if (response && response.ok && response.body) questions = response.body;
   if (questions && questions.length > 0)
@@ -106,10 +110,14 @@ export const searchQuestions = async (
 };
 
 export const getQuestionWithId = async (
-  id: number
+  id: number,
+  token: string
 ): Promise<QuestionData | null> => {
   let question: QuestionData | undefined;
-  const response = await httpCall<QuestionData>({ path: `question/${id}` });
+  const response = await httpCall<QuestionData>({
+    path: `question/${id}`,
+    token: token,
+  });
   if (response && response.ok && response.body) question = response.body;
   if (question) question.created = new Date(question.created);
   return question || null;

@@ -11,6 +11,7 @@ export interface IAuth0Context {
   signIn: () => void;
   signOut: () => void;
   loading: boolean;
+  getToken: () => Promise<string>;
 }
 
 export const AuthContext = React.createContext<IAuth0Context>({
@@ -19,18 +20,11 @@ export const AuthContext = React.createContext<IAuth0Context>({
   signIn: () => {},
   signOut: () => {},
   user: undefined,
+  getToken: async () => '',
 });
 
 export const useAuthContext = () => React.useContext(AuthContext);
 
-export const getAccessToken = async () => {
-  const authClient = await createAuth0Client({
-    ...authSettings,
-    authorizationParams: { redirect_uri: authSettings.redirect_uri },
-  });
-  const token = await authClient.getTokenSilently();
-  return token;
-};
 export const AuthProvider = (props: { children: any }) => {
   const [isAuthenticated, setAuthenticated] = React.useState<boolean>(false);
   const [user, setUser] = React.useState<Auth0User | undefined>(undefined);
@@ -82,6 +76,7 @@ export const AuthProvider = (props: { children: any }) => {
               returnTo: window.location.origin + '/signout-callback',
             },
           }),
+        getToken: () => getAuth0Client().getTokenSilently(),
       }}
     >
       {props.children}
