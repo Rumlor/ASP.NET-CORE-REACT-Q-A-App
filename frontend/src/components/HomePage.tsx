@@ -38,8 +38,14 @@ class HomePage extends Component<HomePageProp, any> {
   async populateQuestionData(): Promise<void> {
     const { dispatch, getToken } = this.props;
     dispatch(gettingUnAnsweredQuestions());
-    const token = await getToken();
-    const result = await getAllAnsweredQuestions(token);
+    let token = undefined;
+    try {
+      token = await getToken();
+    } catch (e) {
+      console.error(e);
+    }
+
+    const result = await getAllAnsweredQuestions(token || '');
     dispatch(gotUnAnsweredQuestions(result));
   }
 

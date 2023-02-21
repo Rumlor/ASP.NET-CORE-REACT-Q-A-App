@@ -93,12 +93,13 @@ export const getAllAnsweredQuestions = async (
 };
 
 export const searchQuestions = async (
-  criteria: string
+  criteria: string,
+  token: string
 ): Promise<QuestionData[]> => {
   let questions: QuestionData[] | undefined;
   const response = await httpCall<QuestionData[]>({
     path: `question?search=${criteria}`,
-    token: '',
+    token: token,
   });
   if (response && response.ok && response.body) questions = response.body;
   if (questions && questions.length > 0)

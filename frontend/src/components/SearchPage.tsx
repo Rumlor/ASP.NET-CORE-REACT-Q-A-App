@@ -15,11 +15,13 @@ import { AppState } from '../store/Store';
 import { searchQuestions } from '../types/QuestionData';
 import { Page } from './Page';
 import QuestionList from './QuestionList';
+import { useAuthContext } from '../auth/Auth';
 
 interface SearchPageProp {
   searchParams: URLSearchParams;
   dispatcher: Dispatch<AnyAction>;
   selector: QuestionsState;
+  getToken: () => Promise<string>;
 }
 class SearchPage extends Component<SearchPageProp, any> {
   render(): ReactNode {
@@ -69,13 +71,20 @@ class SearchPage extends Component<SearchPageProp, any> {
   async populateQuestionsData(): Promise<void> {
     const searchParamValue = this.props.searchParams.get('criteria') || '';
     this.props.dispatcher(searchingQuestions());
-    const results = await searchQuestions(searchParamValue);
+    let token;
+    try {
+      token = await this.props.getToken();
+    } catch (e) {
+      console.error(e);
+    }
+    const results = await searchQuestions(searchParamValue, token || '');
     this.props.dispatcher(searchedQuestions(results));
   }
 }
 function SearchPageFunc(prop: any) {
   const [params] = useSearchParams();
   const dispatcher = useDispatch();
+  const { getToken } = useAuthContext();
   const selector = useSelector((state: AppState) => state.questions);
   return (
     <SearchPage
@@ -83,6 +92,7 @@ function SearchPageFunc(prop: any) {
       searchParams={params}
       dispatcher={dispatcher}
       selector={selector}
+      getToken={getToken}
     />
   );
 }
