@@ -23,6 +23,7 @@ import {
   askedQuestion,
   askingQuestion,
 } from '../store/question/QuestionActions';
+import { useAuthContext } from '../auth/Auth';
 
 type AskPageContent = {
   title: string;
@@ -35,12 +36,14 @@ interface AskPageProp {
   dispatch: Dispatch<AnyAction>;
   selector: QuestionsState;
   formState: FormState<AskPageContent>;
+  getToken: () => Promise<string>;
 }
 
 class AskPage extends Component<AskPageProp, any> {
-  postQuestionData(data: QuestionData) {
+  async postQuestionData(data: QuestionData) {
     this.props.dispatch(askingQuestion());
-    postQuestion(data).then((res) => {
+    const token = await this.props.getToken();
+    postQuestion(data, token).then((res) => {
       this.props.dispatch(askedQuestion());
     });
   }
@@ -131,6 +134,7 @@ function AskPageFunc(prop: any) {
     defaultValues: { title: '', content: '' },
   });
   const dispatch = useDispatch();
+  const { isAuthenticated, getToken } = useAuthContext();
   const selector = useSelector((state: AppState) => state.questions);
   return (
     <AskPage
@@ -140,6 +144,7 @@ function AskPageFunc(prop: any) {
       formState={formState}
       dispatch={dispatch}
       selector={selector}
+      getToken={getToken}
     />
   );
 }

@@ -12,64 +12,8 @@ export interface AnswerData {
   content: string;
   userName: string;
   created: Date;
+  questionId: number;
 }
-
-export const questions: QuestionData[] = [
-  {
-    questionId: 1,
-    title: 'Why should I learn TypeScript?',
-    content:
-      'TypeScript seems to be getting popular so I wondered whether it is worth my time learning it? What benefits does it give over JavaScript?',
-    userName: 'Bob',
-    created: new Date(),
-    answers: [
-      {
-        answerId: 1,
-        content: 'To catch problems earlier speeding up your developments',
-        userName: 'Jane',
-        created: new Date(),
-      },
-      {
-        answerId: 2,
-        content:
-          'So, that you can use the JavaScript features of tomorrow, today',
-        userName: 'Fred',
-        created: new Date(),
-      },
-    ],
-  },
-  {
-    questionId: 2,
-    title: 'Cosmos Changes',
-    content: 'Will Cosmos Changes take place in next 2 millenium?',
-    userName: 'Bob',
-    created: new Date('2022-12-13'),
-    answers: [
-      {
-        answerId: 1,
-        content: 'To catch problems earlier speeding up your developments',
-        userName: 'Jane',
-        created: new Date(),
-      },
-      {
-        answerId: 2,
-        content:
-          'So, that you can use the JavaScript features of tomorrow, today',
-        userName: 'Fred',
-        created: new Date(),
-      },
-    ],
-  },
-  {
-    questionId: 3,
-    title: 'Which state management tool should I use?',
-    content:
-      'There seem to be a fair few state management tools around for React - React, Unstated, ... Which one should I use?',
-    userName: 'Bob',
-    created: new Date(),
-    answers: [],
-  },
-];
 
 export const getAllAnsweredQuestions = async (
   token: string
@@ -121,39 +65,50 @@ export const getQuestionWithId = async (
   });
   if (response && response.ok && response.body) question = response.body;
   if (question) question.created = new Date(question.created);
+  question?.answers.forEach(
+    (answer) => (answer.created = new Date(answer.created))
+  );
   return question || null;
 };
 
 export const postAnswer = async (
   data: AnswerData,
-  questionId: number | undefined
+  questionId: number | undefined,
+  token: string
 ) => {
-  await wait(1000);
   if (questionId === undefined) return false;
-  const question = questions
-    .filter((question) => question.questionId === questionId)
-    .at(0);
-  if (question === undefined) return false;
+  const question = await getQuestionWithId(questionId, token);
+  if (!question) return false;
 
   data.answerId =
     question.answers.length === 0
       ? 1
       : Math.max(...question.answers.map((answer) => answer.answerId)) + 1;
-  question?.answers.push(data);
+  httpCall<AnswerData, AnswerData>({
+    token: token,
+    payload: data,
+    method: 'post',
+    path: 'answer',
+  });
   return question;
 };
 export const postQuestion = async (
-  data: QuestionData
+  data: QuestionData,
+  token: string
 ): Promise<QuestionData | undefined> => {
   await wait(1000);
-  const questionId =
-    Math.max(...questions.map((question) => question.questionId)) + 1;
+
   const newQuestion: QuestionData = {
     ...data,
-    questionId: questionId,
+    questionId: 0,
     answers: [],
   };
-  questions.push(newQuestion);
+  httpCall<QuestionData, QuestionData>({
+    token: token,
+    payload: newQuestion,
+    method: 'post',
+    path: 'question',
+  });
   return newQuestion;
 };
 export const wait = (ms: number): Promise<void> => {

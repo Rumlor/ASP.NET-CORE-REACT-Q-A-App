@@ -54,8 +54,6 @@ class HomePage extends Component<HomePageProp, any> {
   }
   render(): ReactNode {
     const { selector, isAuthenticated } = this.props;
-    console.log('state!!');
-    console.log(selector);
     return (
       <Page>
         <div

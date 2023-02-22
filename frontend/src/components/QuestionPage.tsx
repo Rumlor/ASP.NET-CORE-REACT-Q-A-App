@@ -27,10 +27,7 @@ import { FormState, UseFormHandleSubmit } from 'react-hook-form/dist/types';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { AppState } from '../store/Store';
-import {
-  gettingQuestion,
-  gotQuestion,
-} from '../store/question/QuestionActions';
+import { gotQuestion, askingQuestion } from '../store/question/QuestionActions';
 import { Dispatch } from 'redux';
 import { QuestionsState } from '../store/question/QuestionState';
 import { useAuthContext } from '../auth/Auth';
@@ -61,16 +58,21 @@ class QuestionPage extends Component<QuestionPageProp, any> {
     );
     this.props.dispatcher(gotQuestion(result));
   }
-  onValidSubmit = (data: FieldValues, event?: React.BaseSyntheticEvent) => {
+  onValidSubmit = async (
+    data: FieldValues,
+    event?: React.BaseSyntheticEvent
+  ) => {
     const newAnser: AnswerData = {
       answerId: 0,
       content: data.content,
-      userName: 'fred',
+      userName: '',
       created: new Date(),
+      questionId: this.props.selector.viewing?.questionId || 0,
     };
     event?.preventDefault();
-    this.props.dispatcher(gettingQuestion());
-    postAnswer(newAnser, this.props.selector.viewing?.questionId).then(
+    this.props.dispatcher(askingQuestion());
+    const token = await this.props.getToken();
+    postAnswer(newAnser, this.props.selector.viewing?.questionId, token).then(
       (res) => res && this.props.dispatcher(gotQuestion(res))
     );
   };

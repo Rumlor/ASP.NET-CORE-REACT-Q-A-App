@@ -59,7 +59,7 @@ namespace QANDa.Service
 
         public async Task<QuestionGetSingleResponse> PostQuestion(QuestionPostRequest postRequest,string userId,string token)
         {
-            object userName = "" ;
+            object userName = "";
             var response = await SendAsyncHttpRequest(HttpMethod.Get, _auth0UserInfoUri, token);
 
             if (response.IsSuccessStatusCode)
@@ -75,7 +75,7 @@ namespace QANDa.Service
                 Content = postRequest.Content,
                 Created = DateAndTime.Now,
                 UserId = userId,
-                UserName = userName as string
+                UserName = userName.ToString(),
             };
             
             return await _dataRepositoryWrite.PostQuestion(fullRequest);
@@ -108,7 +108,7 @@ namespace QANDa.Service
                                                                                     Created = DateAndTime.Now, 
                                                                                     QuestionId = answer.QuestionId , 
                                                                                     UserId = userId,
-                                                                                    UserName = userName as string
+                                                                                    UserName = userName.ToString()
                                                         });
         }
 

@@ -4,17 +4,29 @@ export interface HttpApiRequest<REQ = undefined> {
   path: string;
   payload?: REQ;
   token: string;
+  method?: string;
 }
 export interface HttpApiResponse<RES> {
   ok: boolean;
   body?: RES;
 }
+const getRequest = <REQ>(req: HttpApiRequest<REQ>): Request => {
+  const requestInit = {
+    method: req.method || 'get',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: req.payload ? JSON.stringify(req.payload) : undefined,
+  };
+  const request = new Request(`${webAPIUrl}${req.path}`, requestInit);
+  request.headers.set('Authorization', 'Bearer ' + req.token);
+  return request;
+};
 
 export const httpCall = async <RES, REQ = undefined>(
   config: HttpApiRequest<REQ>
 ): Promise<HttpApiResponse<RES>> => {
-  const request = new Request(`${webAPIUrl}${config.path}`);
-  request.headers.set('Authorization', 'Bearer ' + config.token);
+  const request = getRequest(config);
   const response = await fetch(request);
   const httpResponse: HttpApiResponse<RES> = { ok: false };
   if (response.ok) {
